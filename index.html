@@ -492,67 +492,23 @@ body, html {
         </div>
     </div>
     
-<!-- eran page str -->
 <!-- EARN VIEW -->
 <div id="earn" class="view">
-    <!-- Header Section -->
     <div style="text-align: center; padding: 35px 20px 20px;">
         <i class="fa-solid fa-circle-euro" style="font-size: 80px; color: #f1c40f; filter: drop-shadow(0 0 15px rgba(241,196,15,0.4));"></i>
         <h1 style="margin-top: 15px; font-size: 28px; font-weight: 700; color: yellow ; ">အမှတ်များများ ရယူပါ</h1>
     </div>
     
-    <!-- Tabs Section -->
     <div class="earn-tabs">
-        <div class="earn-tab active" onclick="switchEarnTab(this)">Tasks</div>
-        <div class="earn-tab" onclick="switchEarnTab(this)">Completed</div>
+        <div class="earn-tab active" id="tab-pending" onclick="switchEarnTab('pending')">Tasks</div>
+        <div class="earn-tab" id="tab-completed" onclick="switchEarnTab('completed')">Completed</div>
     </div>
     
-    <!-- Task List Container -->
-    <div class="list-container">
-        <!-- Daily Tasks -->
-        <h4 class="category-title">Daily tasks</h4>
-        <div class="task-card" onclick="alert('Daily reward claimed!')">
-            <div class="task-info">
-                <div class="task-icon daily-icon">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span class="notification-dot"></span>
-                </div>
-                <div class="task-text">
-                    <p>Daily reward</p>
-                    <span class="reward-val"><i class="fa-solid fa-euro-sign"></i> +3,689,500</span>
-                </div>
-            </div>
-            <i class="fas fa-chevron-right chevron"></i>
-        </div>
-        
-        <!-- Friendship -->
-        <h4 class="category-title">Friendship</h4>
-        <div class="task-card">
-            <div class="task-info">
-                <div class="task-icon friend-icon"><i class="fas fa-users"></i></div>
-                <div class="task-text">
-                    <p>Add 10 new friends (0/10)</p>
-                    <span class="reward-val"><i class="fa-solid fa-euro-sign"></i> +1,000,000</span>
-                </div>
-            </div>
-            <i class="fas fa-chevron-right chevron"></i>
-        </div>
-        
-        <!-- More to do -->
-        <h4 class="category-title">More to do</h4>
-        <div class="task-card" onclick="window.open('https://youtube.com', '_blank')">
-            <div class="task-info">
-                <div class="task-icon yt-icon"><i class="fab fa-youtube"></i></div>
-                <div class="task-text">
-                    <p>Watch the video about the BULL token</p>
-                    <span class="reward-val"><i class="fa-solid fa-euro-sign"></i> +100,000</span>
-                </div>
-            </div>
-            <i class="fas fa-chevron-right chevron"></i>
-        </div>
+    <!-- ဒီနေရာမှာ ID ကို task-list-container လို့ ပြောင်းပေးပါ -->
+    <div class="list-container" id="task-list-container">
+        <!-- Tasks တွေကို JavaScript ကနေ ဒီထဲမှာ ထည့်ပေးပါမယ် -->
     </div>
 </div>
-<!-- eran page edn -->
 
 
 <!-- FRIENDS VIEW -->
@@ -653,27 +609,23 @@ body, html {
 
 <script>
     var clickCount = 0;
-    let balance = 0;
-    const targetRank = 2500;
-    let isGoalReached = false;
+const adminEmail = "aungzawhtayaungzawhtay517@gmail.com";
+let userData = { balance: 0, completedTasks: [], earnPerTap: 1, earnPerHour: 0 };
+let currentEarnTab = 'pending';
+
+// User ID သတ်မှတ်ခြင်း (မဖျက်ပါနဲ့)
+let userId = localStorage.getItem('cat_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+localStorage.setItem('cat_user_id', userId);
 
     function handleTap(event) {
-        if (balance < targetRank) {
-            balance += 1;
-            updateUI();
-
-            // Click animation
-            const clickX = event.clientX || event.touches[0].clientX;
-            const clickY = event.clientY || event.touches[0].clientY;
-            showTapAnimation(clickX, clickY);
-
-            // Check if goal reached
-            if (balance >= targetRank && !isGoalReached) {
-                isGoalReached = true;
-                showSMS();
-            }
-        }
-    }
+    userData.balance += userData.earnPerTap;
+    db.collection("users").doc(userId).update({ balance: userData.balance });
+    
+    // Click Animation
+    const clickX = event.clientX || event.touches[0].clientX;
+    const clickY = event.clientY || event.touches[0].clientY;
+    showTapAnimation(clickX, clickY);
+}
 
     function updateUI() {
         document.getElementById('balance').innerText = balance.toLocaleString();
@@ -728,6 +680,25 @@ const firebaseConfig = {
 // Firebase ကို စတင်အသုံးပြုခြင်း
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore(); // Firestore Database ကို db အနေနဲ့ သတ်မှတ်လိုက်ပါပြီ
+
+// Database ကနေ User Data ကို အမြဲစောင့်ကြည့်နေမယ်
+db.collection("users").doc(userId).onSnapshot((doc) => {
+    if (doc.exists) {
+        userData = doc.data();
+        updateUI(); // Balance တွေကို Update လုပ်မယ်
+        renderUserTasks(); // Task စာရင်းကို Update လုပ်မယ်
+    } else {
+        db.collection("users").doc(userId).set(userData); // အကောင့်သစ်ဆောက်မယ်
+    }
+});
+
+function updateUI() {
+    document.getElementById('balance').innerText = Math.floor(userData.balance).toLocaleString();
+    document.getElementById('current-rank').innerText = Math.floor(userData.balance).toLocaleString();
+    let progressPercent = (userData.balance / 2500) * 100;
+    document.getElementById('progress').style.width = Math.min(progressPercent, 100) + "%";
+}
+
 
 async function checkAdmin() {
     
@@ -813,18 +784,60 @@ db.collection("tasks").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
 
 // Admin Panel မှာ Task တွေကို ပြရန်နှင့် ဖျက်ရန်
 function renderAdminTasks() {
-    db.collection("tasks").onSnapshot(snapshot => {
-        const list = document.getElementById('admin-task-list');
-        list.innerHTML = '';
-        snapshot.forEach(doc => {
+    function switchEarnTab(tab) {
+    currentEarnTab = tab;
+    // Tab အရောင်ပြောင်းဖို့ (HTML မှာ ID တွေ ထည့်ထားဖို့လိုပါတယ်)
+    document.querySelectorAll('.earn-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    renderUserTasks();
+}
+
+function renderUserTasks() {
+    db.collection("tasks").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        const container = document.getElementById('task-list-container');
+        if (!container) return;
+        let html = '';
+        
+        snapshot.forEach((doc) => {
             const t = doc.data();
-            list.innerHTML += `
-                <div style="background:#1c2e64; padding:10px; margin-bottom:5px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px;">${t.title}</span>
-                    <button onclick="deleteTask('${doc.id}')" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px;">Delete</button>
-                </div>`;
+            const taskId = doc.id;
+            const isCompleted = userData.completedTasks.includes(taskId);
+            
+            // Tasks tab မှာဆိုရင် မလုပ်ရသေးတာပြမယ်၊ Completed tab မှာဆိုရင် လုပ်ပြီးသားပြမယ်
+            if ((currentEarnTab === 'pending' && !isCompleted) || (currentEarnTab === 'completed' && isCompleted)) {
+                html += `
+                    <div class="task-card" onclick="${!isCompleted ? `doTask('${taskId}', '${t.link}', ${t.reward})` : ''}">
+                        <div class="task-info">
+                            <div class="task-icon daily-icon"><i class="fas ${isCompleted ? 'fa-check' : 'fa-play'}"></i></div>
+                            <div class="task-text">
+                                <p>${t.title}</p>
+                                <span class="reward-val">$ +${t.reward.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        ${!isCompleted ? '<i class="fas fa-chevron-right"></i>' : '<span style="color:#2ecc71;">Done</span>'}
+                    </div>`;
+            }
         });
+        container.innerHTML = html || '<p style="text-align:center;color:gray;margin-top:20px;">ဘာမှမရှိသေးပါ။</p>';
     });
+}
+
+function doTask(id, link, reward) {
+    window.open(link, '_blank');
+    setTimeout(() => {
+        if (confirm("Task လုပ်ပြီးပြီလား? Reward ယူမလား?")) {
+            if (!userData.completedTasks.includes(id)) {
+                userData.balance += reward;
+                userData.completedTasks.push(id);
+                db.collection("users").doc(userId).update({
+                    balance: userData.balance,
+                    completedTasks: userData.completedTasks
+                });
+                alert("Reward ရရှိပါပြီ!");
+            }
+        }
+    }, 2000);
+}
 }
 
 async function deleteTask(id) {
@@ -832,6 +845,14 @@ async function deleteTask(id) {
         await db.collection("tasks").doc(id).delete();
     }
 }
+
+// ၁ စက္ကန့်တိုင်း အမှတ် အလိုလို တက်နေစေဖို့
+setInterval(() => {
+    if (userData.earnPerHour > 0) {
+        userData.balance += (userData.earnPerHour / 3600);
+        db.collection("users").doc(userId).update({ balance: userData.balance });
+    }
+}, 1000);
 
 </script>
 
