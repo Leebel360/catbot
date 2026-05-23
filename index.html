@@ -427,6 +427,19 @@ body, html {
 .close-btn { background: #e74c3c; color: white; }
 
 
+/* Payout Page Styles */
+.payout-card { background: var(--card-bg); padding: 20px; border-radius: 20px; margin: 20px; border: 1px solid rgba(255,255,255,0.1); }
+.payout-input, .payout-select { width: 100%; background: #050a24; border: 1px solid #34495e; color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; font-size: 15px; font-family: inherit; }
+.payout-file-box { border: 2px dashed #34495e; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 20px; cursor: pointer; background: rgba(0,0,0,0.2); }
+.payout-btn { width: 100%; background: linear-gradient(to right, #007bff, #0056b3); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.payout-btn:active { transform: scale(0.97); }
+
+/* Custom Popup */
+#custom-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; }
+.popup-box { background: #1c2e64; padding: 25px; border-radius: 20px; text-align: center; width: 80%; max-width: 300px; border: 1px solid var(--gold); animation: popIn 0.3s ease-out; }
+.popup-icon { font-size: 50px; color: #2ecc71; margin-bottom: 15px; }
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 
     </style>
 </head>
@@ -455,21 +468,26 @@ body, html {
 
     <!-- HOME VIEW -->
     <div id="home" class="view active">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-label">Earn per tap</div>
-                <div class="stat-value" style="color: #f1c40f; font-weight: bold;">$ +1</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Earn per hour</div>
-            <div class="stat-value" style="color: #f1c40f; 
-            font-weight: bold;">$ +0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label" style="color: #2ecc71;">Energy</div>
-                <div class="stat-value"><i class="fas fa-bolt" style="color: #f1c40f;"></i> 1,000/1,000</div>
-            </div>
-        </div>
+        
+<div class="stats-grid">
+    <!-- Box 1: Earn per task (Task တွေက ရထားတဲ့ အမှတ်စုစုပေါင်း) -->
+    <div class="stat-box">
+        <div class="stat-label">Earn per task</div>
+        <div id="display-task-points" class="stat-value" style="color: #f1c40f; font-weight: bold;">$ +0</div>
+    </div>
+    
+    <!-- Box 2: Earn per click (ကြောင်နှိပ်ရင် တိုးမယ့်အမှတ်) -->
+    <div class="stat-box">
+        <div class="stat-label">Earn per click</div>
+        <div id="display-click-points" class="stat-value" style="color: #f1c40f; font-weight: bold;">$ +1</div>
+    </div>
+    
+    <!-- Box 3: Energy -->
+    <div class="stat-box">
+        <div class="stat-label" style="color: #2ecc71;">Energy</div>
+        <div class="stat-value"><i class="fas fa-bolt" style="color: #f1c40f;"></i> 1,000/1,000</div>
+    </div>
+</div>
 
         <div class="balance-section">
             <div class="balance-amount">
@@ -510,63 +528,60 @@ body, html {
     </div>
 </div>
 
+<!-- PAYOUT VIEW -->
+<div id="payout" class="view">
+    <div style="text-align: center; padding: 30px 20px 10px;">
+        <i class="fas fa-wallet" style="font-size: 60px; color: #2ecc71;"></i>
+        <h1 style="font-size: 24px; font-weight: 800; margin-top: 10px;">Withdraw Funds</h1>
+        <p style="color: var(--text-gray); font-size: 14px;">အနည်းဆုံး ပွိုင့် (၅,၀၀၀) ပြည့်မှ ငွေထုတ်နိုင်ပါမည်။</p>
+    </div>
+    
+    <div class="payout-card">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <span style="color: gray;">လက်ရှိ Balance:</span>
+            <strong style="color: var(--gold);" id="payout-balance">0 Points</strong>
+        </div>
+        <select id="pay-method" class="payout-select">
+            <option value="kpay">KBZ Pay</option>
+            <option value="wpay">Wave Pay</option>
+            <option value="binance">Binance Pay</option>
+        </select>
+        <input type="text" id="pay-account" class="payout-input" placeholder="ဖုန်းနံပါတ် (သို့) အကောင့် ID ထည့်ပါ">
+        <input type="number" id="pay-amount" class="payout-input" placeholder="ထုတ်ယူမည့် ပွိုင့် (ဥပမာ- 5000)">
+        
+        <div class="payout-file-box" onclick="document.getElementById('pay-slip').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 24px; margin-bottom: 10px; display: block; color: var(--accent-blue);"></i>
+            <span style="font-size: 12px; color: var(--text-gray);">ငွေလွှဲစလစ် (သို့) QR ပုံ ထည့်ရန် နှိပ်ပါ</span>
+            <input type="file" id="pay-slip" accept="image/*" style="display: none;" onchange="alert('ပုံထည့်သွင်းမှု အောင်မြင်ပါသည်။')">
+        </div>
+        <button class="payout-btn" onclick="submitPayout()">အတည်ပြုမည် (Confirm)</button>
+    </div>
+</div>
 
 <!-- FRIENDS VIEW -->
 <div id="friends" class="view">
-    <!-- Header Section -->
     <div style="text-align: center; padding: 40px 20px 20px;">
-        <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Invite friends</h1>
-        <p style="color: var(--text-gray); font-size: 15px;">You and your friend will receive bonuses</p>
+        <i class="fas fa-user-group" style="font-size: 60px; color: var(--gold);"></i>
+        <h1 style="font-size: 28px; font-weight: 800; margin-top: 10px;">Invite Friends</h1>
+        <p style="color: var(--text-gray); font-size: 14px;">သူငယ်ချင်းတစ်ယောက် ဖိတ်ခေါ်တိုင်း ၁၀၀ ပွိုင့် ရရှိပါမည်။</p>
     </div>
     
-    <div class="list-container">
-        <!-- Invite Card Standard -->
-        <div class="task-card">
-            <div class="task-info">
-                <div class="task-icon invite-standard"><i class="fas fa-gift"></i></div>
-                <div class="task-text">
-                    <p>Invite a friend</p>
-                    <span class="reward-val"><i class="fa-solid fa-euro-sign" style="font-size: 11px;"></i> +5,000 for you and your friend</span>
-                </div>
-            </div>
-        </div>
+    <div class="payout-card" style="text-align: center;">
+        <h3 style="color: white; margin-bottom: 15px;">သင့်၏ Invite Link</h3>
+        <input type="text" id="invite-link-display" class="payout-input" readonly style="text-align: center; color: #4facfe;">
         
-        <!-- Invite Card Premium -->
-        <div class="task-card">
-            <div class="task-info">
-                <div class="task-icon invite-premium"><i class="fas fa-award"></i></div>
-                <div class="task-text">
-                    <p>Invite a friend with Telegram Premium</p>
-                    <span class="reward-val"><i class="fa-solid fa-euro-sign" style="font-size: 11px;"></i> +25,000 for you and your friend</span>
-                </div>
-            </div>
-        </div>
+        <button class="payout-btn" onclick="copyInviteLink()" style="background: var(--gold); color: black;">
+            <i class="fas fa-copy"></i> Copy Link
+        </button>
         
-        <!-- Mentor Section -->
-        <div class="mentor-box">
-            <div class="mentor-left">
-                <span class="mentor-tag">Mentor</span>
-                <div class="mentor-details">
-                    <div class="mentor-avatar"><i class="fas fa-user-tie"></i></div>
-                    <strong>Oliver S.</strong>
-                </div>
-            </div>
-            <a href="#" class="contact-link">Contact</a>
-        </div>
-        
-        <!-- Empty State / Friends List -->
-        <div style="margin-top: 40px; text-align: center;">
-            <h4 style="color: white; margin-bottom: 5px; font-size: 16px;">Friends list (0/10,000)</h4>
-            <p style="color: var(--text-gray); font-size: 14px;">You have not invited anyone yet</p>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="invite-actions">
-            <button class="main-invite-btn" onclick="alert('Invitation Link Copied!')">Invite a friend</button>
-            <button class="copy-link-btn"><i class="fas fa-copy"></i></button>
+        <div style="margin-top: 20px; font-size: 16px; color: #2ecc71; font-weight: bold;">
+            Invite မှ ရရှိသောအမှတ်: <span id="invite-earnings-display">0</span> Points
         </div>
     </div>
 </div>
+
+
+
     
     
     <!-- BOTTOM NAVIGATION -->
@@ -579,10 +594,15 @@ body, html {
             <i class="fas fa-wallet"></i>
             <div>Earn</div>
         </div>
-        <div class="nav-item" onclick="switchTab('friends', this)">
-            <i class="fas fa-user-group"></i>
-            <div>Friends</div>
-        </div>
+        <div class="nav-item" onclick="switchTab('payout', this)">
+    <i class="fas fa-money-bill-transfer"></i>
+    <div>Payout</div>
+</div>
+        <div class="nav-item" onclick="switchTab('friends', this); generateLink();">
+    <i class="fas fa-user-group"></i>
+    <div>Friends</div>
+</div>
+        
     </div>
 </div>
 
@@ -606,53 +626,182 @@ body, html {
     <div id="admin-task-list"></div>
 </div>
 
+<!-- SUCCESS POPUP -->
+<div id="custom-popup">
+    <div class="popup-box">
+        <i class="fas fa-check-circle popup-icon"></i>
+        <h3 style="margin: 0 0 10px 0;">အောင်မြင်ပါသည်</h3>
+        <p style="font-size: 14px; color: #ddd; line-height: 1.5; margin-bottom: 20px;">
+            ၆ နာရီ ကနေ ၂၄ နာရီ အတွင်း အတည်ပြုပေးပါမည်။
+        </p>
+        <button onclick="document.getElementById('custom-popup').style.display='none'" style="width: 100%; padding: 10px; background: #2ecc71; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">အိုကေ</button>
+    </div>
+</div>
 
 <script>
+
+
+    // Variables များ
     var clickCount = 0;
-const adminEmail = "aungzawhtayaungzawhtay517@gmail.com";
-let userData = { balance: 0, completedTasks: [], earnPerTap: 1, earnPerHour: 0 };
-let currentEarnTab = 'pending';
-
-// User ID သတ်မှတ်ခြင်း (မဖျက်ပါနဲ့)
-let userId = localStorage.getItem('cat_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
-localStorage.setItem('cat_user_id', userId);
-
-    function handleTap(event) {
-    userData.balance += userData.earnPerTap;
-    db.collection("users").doc(userId).update({ balance: userData.balance });
+    const adminEmail = "aungzawhtayaungzawhtay517@gmail.com";
     
-    // Click Animation
-    const clickX = event.clientX || event.touches[0].clientX;
-    const clickY = event.clientY || event.touches[0].clientY;
-    showTapAnimation(clickX, clickY);
+    // အမှတ်များကို သီးသန့်ခွဲမှတ်ရန် totalClicks နဲ့ taskEarnings ကို ထည့်ထားသည်
+    let userData = { balance: 0, completedTasks: [], totalClicks: 0, taskEarnings: 0, idleEarnings: 0, earnPerHour: 0,withdrawnAmount: 0, inviteEarnings: 0 };
+    let currentEarnTab = 'pending';
+
+    // User ID သတ်မှတ်ခြင်း (မဖျက်ပါနဲ့)
+    let userId = localStorage.getItem('cat_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('cat_user_id', userId);
+
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyBnbb6yZSSkwToT380tNnGVPApYkEpOido",
+        authDomain: "catbot-75a29.firebaseapp.com",
+        projectId: "catbot-75a29",
+        storageBucket: "catbot-75a29.firebasestorage.app",
+        messagingSenderId: "52987376674",
+        appId: "1:52987376674:web:2c542dc2656afd16cc067b",
+        measurementId: "G-RDJ5E8PDGF"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Database ကနေ Data ယူခြင်း
+    
+    // Fetch Database & Check Referral
+db.collection("users").doc(userId).get().then((doc) => {
+    if (!doc.exists) {
+        // အကောင့်သစ်ဖြစ်နေလျှင် (Link ကနေလာတာလား စစ်မည်)
+        const urlParams = new URLSearchParams(window.location.search);
+        const referrerId = urlParams.get('ref'); // Link နောက်က ref ကိုယူမည်
+        
+        // ကိုယ့်လင့်ခ်ကိုယ်ပြန်နှိပ်တာ မဟုတ်ဘူးဆိုရင် ဖိတ်တဲ့သူကို ၁၀၀ ပွိုင့် ပေးမည်
+        if (referrerId && referrerId !== userId) {
+            db.collection("users").doc(referrerId).update({
+                inviteEarnings: firebase.firestore.FieldValue.increment(100)
+            }).catch(e => console.log(e));
+        }
+        // User အသစ်ကို Database တွင် စာရင်းသွင်းမည်
+        db.collection("users").doc(userId).set(userData);
+    }
+    
+    // အမြဲတမ်း Data အသစ်များကို ဖတ်နေမည်
+    db.collection("users").doc(userId).onSnapshot((snapshot) => {
+        if (snapshot.exists) {
+            userData = snapshot.data();
+            userData.totalClicks = userData.totalClicks || 0;
+            userData.taskEarnings = userData.taskEarnings || 0;
+            userData.withdrawnAmount = userData.withdrawnAmount || 0;
+            userData.inviteEarnings = userData.inviteEarnings || 0;
+            updateUI();
+            renderUserTasks();
+        }
+    });
+});
+    ////
+
+    // ==========================================
+    // ၁။ ကြောင်နှိပ်ခြင်း ပိုင်း
+    // ==========================================
+    /*function handleTap(event) {
+        // (၁) ကြောင်နှိပ်တဲ့ အကြိမ်ရေ (၁) တိုးမယ်
+        userData.totalClicks += 1;
+        
+        // (၂) Balance တွက်မယ် = (နှိပ်တဲ့အကြိမ်ရေ + Task မှရသောအမှတ်)
+        userData.balance = userData.totalClicks + userData.taskEarnings;
+        
+        // (၃) စခရင်ပေါ်မှာ ချက်ချင်း ပြောင်းပြမယ်
+        updateUI();
+        
+        // (၄) Database ထဲ လှမ်းသိမ်းမယ်
+        db.collection("users").doc(userId).update({
+            totalClicks: firebase.firestore.FieldValue.increment(1),
+            balance: userData.balance // တွက်ပြီးသား Balance ကို တိုက်ရိုက်သိမ်းမည်
+        }).catch(error => console.log("Error updating tap:", error));
+        
+        // Animation
+        let clickX, clickY;
+        if (event.touches && event.touches.length > 0) {
+            clickX = event.touches[0].clientX;
+            clickY = event.touches[0].clientY;
+        } else {
+            clickX = event.clientX;
+            clickY = event.clientY;
+        }
+        showTapAnimation(clickX, clickY, 1);
+    }*/
+    
+    function handleTap(event) {
+    userData.totalClicks = (userData.totalClicks || 0) + 1;
+    
+    // Invite အမှတ်ကိုပါ Balance ထဲ ထည့်တွက်မည်
+    const clicks = userData.totalClicks;
+    const taskPoints = userData.taskEarnings || 0;
+    const invites = userData.inviteEarnings || 0; // Invite အမှတ်
+    const withdrawn = userData.withdrawnAmount || 0;
+    
+    // အားလုံးပေါင်းပြီး Balance အတိအကျ တွက်ခြင်း
+    userData.balance = (clicks + taskPoints + invites) - withdrawn;
+    
+    updateUI(); // စခရင်ပေါ် ချက်ချင်းပြမည်
+    
+    db.collection("users").doc(userId).update({
+        totalClicks: firebase.firestore.FieldValue.increment(1),
+        balance: userData.balance // Database ထဲသို့ ပေါင်းပြီးသား Balance သိမ်းမည်
+    }).catch(e => console.log(e));
+    
+    let clickX = event.touches ? event.touches[0].clientX : event.clientX;
+    let clickY = event.touches ? event.touches[0].clientY : event.clientY;
+    showTapAnimation(clickX, clickY, 1);
 }
 
-    function updateUI() {
-        document.getElementById('balance').innerText = balance.toLocaleString();
-        document.getElementById('current-rank').innerText = balance.toLocaleString();
-        
-        let progressPercent = (balance / targetRank) * 100;
-        document.getElementById('progress').style.width = Math.min(progressPercent, 100) + "%";
-    }
-
-    function showTapAnimation(x, y) {
+    function showTapAnimation(x, y, tapValue) {
         const anim = document.createElement('div');
         anim.className = 'tap-anim';
-        anim.innerText = '+1';
+        anim.innerText = '+' + tapValue; 
         anim.style.left = (x - 10) + 'px';
         anim.style.top = (y - 20) + 'px';
         document.body.appendChild(anim);
         setTimeout(() => anim.remove(), 800);
     }
 
-    function showSMS() {
-        document.getElementById('sms-alert').style.display = 'block';
+    // ==========================================
+    // ၂။ စခရင်ပေါ်တွင် ဂဏန်းများ ပြသခြင်း (UI)
+    // ==========================================
+ 
+ function updateUI() {
+    const clicks = userData.totalClicks || 0;
+    const taskPoints = userData.taskEarnings || 0;
+    const withdrawn = userData.withdrawnAmount || 0;
+    const invites = userData.inviteEarnings || 0; // Invite အမှတ်ကို ယူမည်
+    
+    // Final Balance (စုစုပေါင်းအမှတ် - ထုတ်ထားတဲ့အမှတ်)
+    const finalBalance = (clicks + taskPoints + invites) - withdrawn;
+    userData.balance = finalBalance;
+    
+    document.getElementById('balance').innerText = finalBalance.toLocaleString();
+    
+    if (document.getElementById('payout-balance')) {
+        document.getElementById('payout-balance').innerText = finalBalance.toLocaleString() + " Points";
     }
-
-    function closeSMS() {
-        document.getElementById('sms-alert').style.display = 'none';
+    if (document.getElementById('invite-earnings-display')) {
+        document.getElementById('invite-earnings-display').innerText = invites.toLocaleString();
     }
-
+    
+    const rankProgress = finalBalance % 2500;
+    document.getElementById('current-rank').innerText = rankProgress.toLocaleString();
+    
+    let progressPercent = (rankProgress / 2500) * 100;
+    document.getElementById('progress').style.width = Math.min(progressPercent, 100) + "%";
+    
+    document.getElementById('display-click-points').innerText = clicks.toLocaleString() + " ချက်";
+    document.getElementById('display-task-points').innerText = "$ +" + taskPoints.toLocaleString();
+}
+ 
+    // ==========================================
+    // ၃။ Navigation Tabs (အောက်ခြေခလုတ်များ)
+    // ==========================================
     function switchTab(tabId, element) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         const target = document.getElementById(tabId);
@@ -660,199 +809,251 @@ localStorage.setItem('cat_user_id', userId);
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         element.classList.add('active');
     }
-    
-    function switchEarnTab(element) {
-    document.querySelectorAll('.earn-tab').forEach(t => t.classList.remove('active'));
-    element.classList.add('active');
-}
 
-// သင့်ရဲ့ Firebase Config ကို Compat Version ပြောင်းထားတာပါ
-const firebaseConfig = {
-    apiKey: "AIzaSyBnbb6yZSSkwToT380tNnGVPApYkEpOido",
-    authDomain: "catbot-75a29.firebaseapp.com",
-    projectId: "catbot-75a29",
-    storageBucket: "catbot-75a29.firebasestorage.app",
-    messagingSenderId: "52987376674",
-    appId: "1:52987376674:web:2c542dc2656afd16cc067b",
-    measurementId: "G-RDJ5E8PDGF"
-};
-
-// Firebase ကို စတင်အသုံးပြုခြင်း
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore(); // Firestore Database ကို db အနေနဲ့ သတ်မှတ်လိုက်ပါပြီ
-
-// Database ကနေ User Data ကို အမြဲစောင့်ကြည့်နေမယ်
-db.collection("users").doc(userId).onSnapshot((doc) => {
-    if (doc.exists) {
-        userData = doc.data();
-        updateUI(); // Balance တွေကို Update လုပ်မယ်
-        renderUserTasks(); // Task စာရင်းကို Update လုပ်မယ်
-    } else {
-        db.collection("users").doc(userId).set(userData); // အကောင့်သစ်ဆောက်မယ်
-    }
-});
-
-function updateUI() {
-    document.getElementById('balance').innerText = Math.floor(userData.balance).toLocaleString();
-    document.getElementById('current-rank').innerText = Math.floor(userData.balance).toLocaleString();
-    let progressPercent = (userData.balance / 2500) * 100;
-    document.getElementById('progress').style.width = Math.min(progressPercent, 100) + "%";
-}
-
-
-async function checkAdmin() {
-    
-    clickCount++;
-    if (clickCount >= 5) {
-        clickCount = 0; // Reset clicks
-        
-        const provider = new firebase.auth.GoogleAuthProvider();
-        
-        try {
-            // Google Login Popup ပွင့်လာပါမည်
-            const result = await firebase.auth().signInWithPopup(provider);
-            const user = result.user;
-            
-            // သင့်ရဲ့ Admin Email ဟုတ်မဟုတ် စစ်ဆေးခြင်း
-            const adminEmail = "aungzawhtayaungzawhtay517@gmail.com";
-            
-            if (user.email === adminEmail) {
-                document.getElementById('admin-panel').style.display = 'block';
-                renderAdminTasks();
-                alert("မင်္ဂလာပါ Admin " + user.displayName + "။ Dashboard ကို ဖွင့်ပေးလိုက်ပါပြီ။");
-            } else {
-                alert("ခွင့်ပြုချက်မရှိပါ။ ဤ Account သည် Admin မဟုတ်ပါ။");
-                await firebase.auth().signOut(); // Admin မဟုတ်လျှင် ပြန်ထွက်ခိုင်းခြင်း
-            }
-            
-        } catch (error) {
-            console.error(error);
-            alert("Google Login ဝင်ရာတွင် အမှားအယွင်းရှိပါသည်။");
-        }
-    }
-}
-
-
-// Firebase ထဲ Task အသစ်ထည့်ခြင်း
-async function addNewTask() {
-    const title = document.getElementById('task-title').value;
-    const link = document.getElementById('task-link').value;
-    const reward = document.getElementById('task-reward').value;
-    const cat = document.getElementById('task-category').value;
-
-    if(title && link && reward) {
-        await db.collection("tasks").add({
-            title, link, reward: parseInt(reward), cat, createdAt: new Date()
-        });
-        alert("Task ထည့်ပြီးပါပြီ!");
-        document.getElementById('task-title').value = '';
-        document.getElementById('task-link').value = '';
-        document.getElementById('task-reward').value = '';
-    }
-}
-
-// User Screen မှာ Task တွေကို အလိုအလျောက် ပြပေးခြင်း (Real-time)
-db.collection("tasks").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-    const dailyCont = document.querySelector('.list-container');
-    if (!dailyCont) return;
-
-    let dailyHtml = '<h4 class="category-title">နေ့စဉ် တာဝန်များ</h4>';
-    let moreHtml = '<h4 class="category-title">ထပ်မံ လုပ်ဆောင်ရန်</h4>';
-
-    snapshot.forEach((doc) => {
-        const t = doc.data();
-        const taskHtml = `
-            <div class="task-card" onclick="window.open('${t.link}', '_blank')">
-                <div class="task-info">
-                    <div class="task-icon ${t.cat === 'daily' ? 'daily-icon' : 'yt-icon'}">
-                        <i class="fas ${t.cat === 'daily' ? 'fa-calendar-alt' : 'fa-play'}"></i>
-                    </div>
-                    <div class="task-text">
-                        <p>${t.title}</p>
-                        <span class="reward-val">$ +${t.reward.toLocaleString()}</span>
-                    </div>
-                </div>
-                <i class="fas fa-chevron-right"></i>
-            </div>`;
-        
-        if (t.cat === 'daily') dailyHtml += taskHtml;
-        else moreHtml += taskHtml;
-    });
-
-    dailyCont.innerHTML = dailyHtml + moreHtml;
-});
-
-// Admin Panel မှာ Task တွေကို ပြရန်နှင့် ဖျက်ရန်
-function renderAdminTasks() {
     function switchEarnTab(tab) {
-    currentEarnTab = tab;
-    // Tab အရောင်ပြောင်းဖို့ (HTML မှာ ID တွေ ထည့်ထားဖို့လိုပါတယ်)
-    document.querySelectorAll('.earn-tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    renderUserTasks();
-}
+        currentEarnTab = tab;
+        document.querySelectorAll('.earn-tab').forEach(t => t.classList.remove('active'));
+        if (tab === 'pending') document.getElementById('tab-pending').classList.add('active');
+        else document.getElementById('tab-completed').classList.add('active');
+        renderUserTasks();
+    }
 
-function renderUserTasks() {
-    db.collection("tasks").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-        const container = document.getElementById('task-list-container');
-        if (!container) return;
-        let html = '';
-        
-        snapshot.forEach((doc) => {
-            const t = doc.data();
-            const taskId = doc.id;
-            const isCompleted = userData.completedTasks.includes(taskId);
+    // ==========================================
+    // ၄။ Tasks ပိုင်း
+    // ==========================================
+    function renderUserTasks() {
+        db.collection("tasks").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+            const container = document.getElementById('task-list-container');
+            if (!container) return;
+            let html = '';
             
-            // Tasks tab မှာဆိုရင် မလုပ်ရသေးတာပြမယ်၊ Completed tab မှာဆိုရင် လုပ်ပြီးသားပြမယ်
-            if ((currentEarnTab === 'pending' && !isCompleted) || (currentEarnTab === 'completed' && isCompleted)) {
-                html += `
-                    <div class="task-card" onclick="${!isCompleted ? `doTask('${taskId}', '${t.link}', ${t.reward})` : ''}">
-                        <div class="task-info">
-                            <div class="task-icon daily-icon"><i class="fas ${isCompleted ? 'fa-check' : 'fa-play'}"></i></div>
-                            <div class="task-text">
-                                <p>${t.title}</p>
-                                <span class="reward-val">$ +${t.reward.toLocaleString()}</span>
+            snapshot.forEach((doc) => {
+                const t = doc.data();
+                const taskId = doc.id;
+                const isCompleted = userData.completedTasks && userData.completedTasks.includes(taskId);
+                
+                if ((currentEarnTab === 'pending' && !isCompleted) || (currentEarnTab === 'completed' && isCompleted)) {
+                    html += `
+                        <div class="task-card" onclick="${!isCompleted ? `doTask('${taskId}', '${t.link}', ${t.reward})` : ''}">
+                            <div class="task-info">
+                                <div class="task-icon ${t.cat === 'daily' ? 'daily-icon' : 'yt-icon'}">
+                                    <i class="fas ${isCompleted ? 'fa-check-circle' : (t.cat === 'daily' ? 'fa-calendar-alt' : 'fa-play')}"></i>
+                                </div>
+                                <div class="task-text">
+                                    <p>${t.title}</p>
+                                    <span class="reward-val">$ +${t.reward.toLocaleString()}</span>
+                                </div>
                             </div>
-                        </div>
-                        ${!isCompleted ? '<i class="fas fa-chevron-right"></i>' : '<span style="color:#2ecc71;">Done</span>'}
-                    </div>`;
-            }
+                            ${!isCompleted ? '<i class="fas fa-chevron-right"></i>' : '<span style="color:#2ecc71;font-weight:bold;font-size:12px;">Completed</span>'}
+                        </div>`;
+                }
+            });
+            container.innerHTML = html || '<p style="text-align:center;color:gray;margin-top:20px;">ဘာမှမရှိသေးပါ။</p>';
         });
-        container.innerHTML = html || '<p style="text-align:center;color:gray;margin-top:20px;">ဘာမှမရှိသေးပါ။</p>';
-    });
-}
+    }
 
-function doTask(id, link, reward) {
+   /* function doTask(id, link, reward) {
+        window.open(link, '_blank');
+        setTimeout(() => {
+            if (confirm("Task ကို ပြီးမြောက်အောင် လုပ်ဆောင်ပြီးပြီလား? Reward ယူမလား?")) {
+                if (!userData.completedTasks.includes(id)) {
+                    
+                    // Task မှရသောအမှတ်ကို သီးသန့်ပေါင်းထည့်မည်
+                    userData.taskEarnings += reward;
+                    userData.completedTasks.push(id);
+                    
+                    // Balance အသစ်ပြန်တွက်မည်
+                    userData.balance = userData.totalClicks + userData.taskEarnings;
+                    
+                    updateUI(); // စခရင်မှာ ချက်ချင်းပြမည်
+                    
+                    db.collection("users").doc(userId).update({
+                        taskEarnings: firebase.firestore.FieldValue.increment(reward),
+                        balance: userData.balance,
+                        completedTasks: firebase.firestore.FieldValue.arrayUnion(id)
+                    }).then(() => {
+                        alert("ဂုဏ်ယူပါတယ်! $ " + reward.toLocaleString() + " ရရှိပါပြီ။");
+                    });
+                }
+            }
+        }, 2000);
+    }*/
+    
+    function doTask(id, link, reward) {
     window.open(link, '_blank');
     setTimeout(() => {
-        if (confirm("Task လုပ်ပြီးပြီလား? Reward ယူမလား?")) {
+        if (confirm("Task ကို ပြီးမြောက်အောင် လုပ်ဆောင်ပြီးပြီလား? Reward ယူမလား?")) {
             if (!userData.completedTasks.includes(id)) {
-                userData.balance += reward;
+                userData.taskEarnings = (userData.taskEarnings || 0) + reward;
                 userData.completedTasks.push(id);
+                
+                // Invite အမှတ်ကိုပါ Balance ထဲ ထည့်တွက်မည်
+                const clicks = userData.totalClicks || 0;
+                const taskPoints = userData.taskEarnings;
+                const invites = userData.inviteEarnings || 0; // Invite အမှတ်
+                const withdrawn = userData.withdrawnAmount || 0;
+                
+                // အားလုံးပေါင်းပြီး Balance အတိအကျ တွက်ခြင်း
+                userData.balance = (clicks + taskPoints + invites) - withdrawn;
+                
+                updateUI();
+                
                 db.collection("users").doc(userId).update({
-                    balance: userData.balance,
-                    completedTasks: userData.completedTasks
+                    taskEarnings: firebase.firestore.FieldValue.increment(reward),
+                    balance: userData.balance, // Database ထဲသို့ ပေါင်းပြီးသား Balance သိမ်းမည်
+                    completedTasks: firebase.firestore.FieldValue.arrayUnion(id)
+                }).then(() => {
+                    alert("ဂုဏ်ယူပါတယ်! $ " + reward.toLocaleString() + " ရရှိပါပြီ။");
                 });
-                alert("Reward ရရှိပါပြီ!");
             }
         }
     }, 2000);
 }
+
+    // ==========================================
+    // ၅။ Admin ပိုင်း
+    // ==========================================
+    async function checkAdmin() {
+        clickCount++;
+        if (clickCount >= 5) {
+            clickCount = 0; 
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const user = result.user;
+                if (user.email === adminEmail) {
+                    document.getElementById('admin-panel').style.display = 'block';
+                    renderAdminTasks();
+                    alert("မင်္ဂလာပါ Admin " + user.displayName + "။ Dashboard ကို ဖွင့်ပေးလိုက်ပါပြီ။");
+                } else {
+                    alert("ခွင့်ပြုချက်မရှိပါ။ ဤ Account သည် Admin မဟုတ်ပါ။");
+                    await firebase.auth().signOut(); 
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Google Login ဝင်ရာတွင် အမှားအယွင်းရှိပါသည်။");
+            }
+        }
+    }
+
+    async function addNewTask() {
+        const title = document.getElementById('task-title').value;
+        const link = document.getElementById('task-link').value;
+        const reward = document.getElementById('task-reward').value;
+        const cat = document.getElementById('task-category').value;
+
+        if(title && link && reward) {
+            await db.collection("tasks").add({
+                title, link, reward: parseInt(reward), cat, createdAt: new Date()
+            });
+            alert("Task ထည့်ပြီးပါပြီ!");
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-link').value = '';
+            document.getElementById('task-reward').value = '';
+        }
+    }
+
+    function renderAdminTasks() {
+        db.collection("tasks").onSnapshot(snapshot => {
+            const list = document.getElementById('admin-task-list');
+            if (!list) return;
+            list.innerHTML = '';
+            snapshot.forEach(doc => {
+                const t = doc.data();
+                list.innerHTML += `
+                    <div style="background:#1c2e64; padding:10px; margin-bottom:5px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:12px;">${t.title}</span>
+                        <button onclick="deleteTask('${doc.id}')" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px;">Delete</button>
+                    </div>`;
+            });
+        });
+    }
+
+    async function deleteTask(id) {
+        if(confirm("ဖျက်မှာ သေချာလား?")) {
+            await db.collection("tasks").doc(id).delete();
+        }
+    }
+
+    // ==========================================
+    // ၆။ Alerts & Timer
+    // ==========================================
+    function showSMS() { document.getElementById('sms-alert').style.display = 'block'; }
+    function closeSMS() { document.getElementById('sms-alert').style.display = 'none'; }
+
+    setInterval(() => {
+        if (userData.earnPerHour > 0) {
+            userData.idleEarnings = (userData.idleEarnings || 0) + (userData.earnPerHour / 3600);
+            userData.balance = userData.totalClicks + userData.taskEarnings + Math.floor(userData.idleEarnings);
+            db.collection("users").doc(userId).update({ 
+                idleEarnings: userData.idleEarnings,
+                balance: userData.balance 
+            });
+            updateUI();
+        }
+    }, 1000);
+    
+    // ==========================================
+// Payout System (ငွေထုတ်ခြင်းစနစ်)
+// ==========================================
+function submitPayout() {
+    const amount = parseInt(document.getElementById('pay-amount').value);
+    const account = document.getElementById('pay-account').value;
+    
+    // (၁) စည်းကမ်းချက် စစ်ဆေးခြင်း
+    if (userData.balance < 5000) {
+        alert("လက်ရှိ Balance သည် အနည်းဆုံး ပွိုင့် (၅,၀၀၀) ပြည့်မှ ငွေထုတ်၍ရပါမည်။");
+        return;
+    }
+    if (!amount || amount < 5000) {
+        alert("ထုတ်ယူမည့် ပမာဏကို အနည်းဆုံး ၅၀၀၀ နှင့်အထက် မှန်ကန်စွာ ရိုက်ထည့်ပါ။");
+        return;
+    }
+    if (amount > userData.balance) {
+        alert("ထုတ်ယူမည့် ပမာဏသည် လက်ရှိ Balance ထက် များနေပါသည်။");
+        return;
+    }
+    if (account.trim() === "") {
+        alert("ကျေးဇူးပြု၍ ဖုန်းနံပါတ် (သို့) အကောင့်နံပါတ်ကို ထည့်သွင်းပါ။");
+        return;
+    }
+    
+    // (၂) ထုတ်လိုက်တဲ့ ငွေကို Balance ထဲက နှုတ်ရန် Database တွင် မှတ်ခြင်း
+    userData.withdrawnAmount = (userData.withdrawnAmount || 0) + amount;
+    updateUI(); // UI ပေါ်မှာ Balance ချက်ချင်း ပြန်လျှော့ပြမည်
+    
+    db.collection("users").doc(userId).update({
+        withdrawnAmount: userData.withdrawnAmount
+    }).then(() => {
+        // (၃) အောင်မြင်ကြောင်း Custom Popup ပြခြင်း
+        document.getElementById('custom-popup').style.display = 'flex';
+        
+        // အကွက်တွေထဲက စာတွေကို ပြန်ဖျက်ပေးခြင်း
+        document.getElementById('pay-amount').value = '';
+        document.getElementById('pay-account').value = '';
+    }).catch(err => {
+        alert("အမှားအယွင်းဖြစ်ပေါ်နေပါသည်။ အင်တာနက် ပြန်စစ်ပါ။");
+    });
 }
 
-async function deleteTask(id) {
-    if(confirm("ဖျက်မှာ သေချာလား?")) {
-        await db.collection("tasks").doc(id).delete();
-    }
+// ==========================================
+// Invite Friends System
+// ==========================================
+function generateLink() {
+    // လက်ရှိ URL ကိုယူပြီး မိမိ၏ ID ကို ref အနေဖြင့် တပ်မည်
+    const baseUrl = window.location.href.split('?')[0];
+    const inviteLink = baseUrl + "?ref=" + userId;
+    document.getElementById('invite-link-display').value = inviteLink;
 }
 
-// ၁ စက္ကန့်တိုင်း အမှတ် အလိုလို တက်နေစေဖို့
-setInterval(() => {
-    if (userData.earnPerHour > 0) {
-        userData.balance += (userData.earnPerHour / 3600);
-        db.collection("users").doc(userId).update({ balance: userData.balance });
-    }
-}, 1000);
+function copyInviteLink() {
+    const copyText = document.getElementById("invite-link-display");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // Mobile အတွက်
+    navigator.clipboard.writeText(copyText.value).then(() => {
+        alert("Invite Link ကို Copy ကူးယူပြီးပါပြီ။");
+    });
+}
 
 </script>
 
