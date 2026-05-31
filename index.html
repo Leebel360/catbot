@@ -993,46 +993,47 @@ db.collection("users").doc(userId).get().then((doc) => {
         }
     }, 1000);
     
-    // ==========================================
-// Payout System (ငွေထုတ်ခြင်းစနစ်)
+
+// ==========================================
+// Payout System (ငွေထုတ်ခြင်းစနစ် + Telegram Admin သို့ အသိပေးခြင်း)
 // ==========================================
 function submitPayout() {
     const amount = parseInt(document.getElementById('pay-amount').value);
     const account = document.getElementById('pay-account').value;
+    const method = document.getElementById('pay-method').value;
     
-    // (၁) စည်းကမ်းချက် စစ်ဆေးခြင်း
-    if (userData.balance < 5000) {
-        alert("လက်ရှိ Balance သည် အနည်းဆုံး ပွိုင့် (၅,၀၀၀) ပြည့်မှ ငွေထုတ်၍ရပါမည်။");
-        return;
-    }
-    if (!amount || amount < 5000) {
-        alert("ထုတ်ယူမည့် ပမာဏကို အနည်းဆုံး ၅၀၀၀ နှင့်အထက် မှန်ကန်စွာ ရိုက်ထည့်ပါ။");
-        return;
-    }
-    if (amount > userData.balance) {
-        alert("ထုတ်ယူမည့် ပမာဏသည် လက်ရှိ Balance ထက် များနေပါသည်။");
-        return;
-    }
-    if (account.trim() === "") {
-        alert("ကျေးဇူးပြု၍ ဖုန်းနံပါတ် (သို့) အကောင့်နံပါတ်ကို ထည့်သွင်းပါ။");
-        return;
-    }
+    // ၁။ စည်းကမ်းချက် စစ်ဆေးခြင်း
+    if (userData.balance < 5000) { alert("အနည်းဆုံး ပွိုင့် (၅,၀၀၀) ပြည့်မှ ငွေထုတ်၍ရပါမည်။"); return; }
+    if (!amount || amount < 5000) { alert("ပမာဏကို အနည်းဆုံး ၅၀၀၀ နှင့်အထက် မှန်ကန်စွာ ရိုက်ထည့်ပါ။"); return; }
+    if (amount > userData.balance) { alert("ထုတ်ယူမည့် ပမာဏသည် Balance ထက် များနေပါသည်။"); return; }
+    if (account.trim() === "") { alert("ဖုန်းနံပါတ် (သို့) အကောင့်နံပါတ်ကို ထည့်သွင်းပါ။"); return; }
     
-    // (၂) ထုတ်လိုက်တဲ့ ငွေကို Balance ထဲက နှုတ်ရန် Database တွင် မှတ်ခြင်း
+    // ၂။ Balance ထဲက နှုတ်ရန် Database တွင် မှတ်ခြင်း
     userData.withdrawnAmount = (userData.withdrawnAmount || 0) + amount;
     updateUI(); // UI ပေါ်မှာ Balance ချက်ချင်း ပြန်လျှော့ပြမည်
     
     db.collection("users").doc(userId).update({
         withdrawnAmount: userData.withdrawnAmount
     }).then(() => {
-        // (၃) အောင်မြင်ကြောင်း Custom Popup ပြခြင်း
-        document.getElementById('custom-popup').style.display = 'flex';
         
-        // အကွက်တွေထဲက စာတွေကို ပြန်ဖျက်ပေးခြင်း
-        document.getElementById('pay-amount').value = '';
-        document.getElementById('pay-account').value = '';
+        // ၃။ Admin ဆီသို့ Telegram Bot မှတစ်ဆင့် Message ပို့ခြင်း
+        const botToken = "8914160969:AAH8DYucFk5-qjP2phSwBHcElVWg3zveZhI"; // <-- ဤနေရာတွင် Bot Token ထည့်ပါ
+        const adminChatId = "1856743644"; // <-- ဤနေရာတွင် Admin Chat ID ထည့်ပါ
+        
+        // Admin ဆီပို့မည့် စာသား
+        const message = `🚨 ငွေထုတ်ရန် တောင်းဆိုမှုအသစ် 🚨\n\n👤 User ID: ${userId}\n💰 ပမာဏ: ${amount} Points\n🏦 ထုတ်မည့်နည်းလမ်း: ${method}\n📱 အကောင့်/ဖုန်း: ${account}\n\nကျေးဇူးပြု၍ စစ်ဆေးပေးပါ။`;
+        
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${adminChatId}&text=${encodeURIComponent(message)}`)
+            .then(response => {
+                // ၄။ အောင်မြင်ကြောင်း Custom Popup ပြခြင်း
+                document.getElementById('custom-popup').style.display = 'flex';
+                document.getElementById('pay-amount').value = '';
+                document.getElementById('pay-account').value = '';
+            })
+            .catch(error => console.error("Error sending to Telegram:", error));
+        
     }).catch(err => {
-        alert("အမှားအယွင်းဖြစ်ပေါ်နေပါသည်။ အင်တာနက် ပြန်စစ်ပါ။");
+        alert("အမှားအယွင်းဖြစ်ပေါ်နေပါသည်။");
     });
 }
 
