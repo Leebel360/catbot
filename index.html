@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
     
 
     <style>
@@ -649,9 +650,19 @@ body, html {
     let userData = { balance: 0, completedTasks: [], totalClicks: 0, taskEarnings: 0, idleEarnings: 0, earnPerHour: 0,withdrawnAmount: 0, inviteEarnings: 0 };
     let currentEarnTab = 'pending';
 
-    // User ID သတ်မှတ်ခြင်း (မဖျက်ပါနဲ့)
-    let userId = localStorage.getItem('cat_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+
+    // Telegram မှ User ID အစစ်ကို ယူသုံးခြင်း
+let tgApp = window.Telegram ? window.Telegram.WebApp : null;
+let userId = "";
+
+if (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.user) {
+    // Telegram ကနေ ဝင်လာရင် Telegram ID ကို သုံးမည်
+    userId = tgApp.initDataUnsafe.user.id.toString();
+} else {
+    // အကယ်၍ Browser ကနေ သာမန်ဝင်လာရင် Browser Cache ID ကိုပဲ သုံးမည်
+    userId = localStorage.getItem('cat_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('cat_user_id', userId);
+}
 
     // Firebase Config
     const firebaseConfig = {
@@ -669,12 +680,20 @@ body, html {
 
     // Database ကနေ Data ယူခြင်း
     
-    // Fetch Database & Check Referral
+
+// Fetch Database & Check Referral
 db.collection("users").doc(userId).get().then((doc) => {
     if (!doc.exists) {
-        // အကောင့်သစ်ဖြစ်နေလျှင် (Link ကနေလာတာလား စစ်မည်)
-        const urlParams = new URLSearchParams(window.location.search);
-        const referrerId = urlParams.get('ref'); // Link နောက်က ref ကိုယူမည်
+        // Telegram Mini App ထဲကနေ Referral ID ကို ဖမ်းယူခြင်း
+        let tgApp = window.Telegram.WebApp;
+        let referrerId = null;
+        
+        if (tgApp && tgApp.initDataUnsafe && tgApp.initDataUnsafe.start_param) {
+            referrerId = tgApp.initDataUnsafe.start_param; // Telegram Link မှလာလျှင်
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            referrerId = urlParams.get('ref'); // Web Browser မှလာလျှင်
+        }
         
         // ကိုယ့်လင့်ခ်ကိုယ်ပြန်နှိပ်တာ မဟုတ်ဘူးဆိုရင် ဖိတ်တဲ့သူကို ၁၀၀ ပွိုင့် ပေးမည်
         if (referrerId && referrerId !== userId) {
@@ -699,6 +718,7 @@ db.collection("users").doc(userId).get().then((doc) => {
         }
     });
 });
+
     ////
 
     // ==========================================
@@ -1018,7 +1038,7 @@ function submitPayout() {
         
         // ၃။ Admin ဆီသို့ Telegram Bot မှတစ်ဆင့် Message ပို့ခြင်း
         const botToken = "8914160969:AAH8DYucFk5-qjP2phSwBHcElVWg3zveZhI"; // <-- ဤနေရာတွင် Bot Token ထည့်ပါ
-        const adminChatId = "8441912928"; // <-- ဤနေရာတွင် Admin Chat ID ထည့်ပါ
+        const adminChatId = "1856743644"; // <-- ဤနေရာတွင် Admin Chat ID ထည့်ပါ
         
         // Admin ဆီပို့မည့် စာသား
         const message = `🚨 ငွေထုတ်ရန် တောင်းဆိုမှုအသစ် 🚨\n\n👤 User ID: ${userId}\n💰 ပမာဏ: ${amount} Points\n🏦 ထုတ်မည့်နည်းလမ်း: ${method}\n📱 အကောင့်/ဖုန်း: ${account}\n\nကျေးဇူးပြု၍ စစ်ဆေးပေးပါ။`;
@@ -1041,11 +1061,18 @@ function submitPayout() {
 // Invite Friends System
 // ==========================================
 function generateLink() {
-    // လက်ရှိ URL ကိုယူပြီး မိမိ၏ ID ကို ref အနေဖြင့် တပ်မည်
-    const baseUrl = window.location.href.split('?')[0];
-    const inviteLink = baseUrl + "?ref=" + userId;
+    // သင့် Bot ရဲ့ Username (ဥပမာ - catbot_bot)
+    const botUsername = "Ping_cat_bot";
+    
+    // BotFather တွင်ပေးခဲ့သော Web App Short Name (ဥပမာ - play)
+    const appShortName = "app";
+    
+    // Telegram Mini App အတွက် တရားဝင် လင့်ခ်တို ဖန်တီးခြင်း
+    const inviteLink = `https://t.me/${botUsername}/${appShortName}?startapp=${userId}`;
+    
     document.getElementById('invite-link-display').value = inviteLink;
 }
+
 
 function copyInviteLink() {
     const copyText = document.getElementById("invite-link-display");
