@@ -11,6 +11,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src='//libtl.com/sdk.js' data-zone='11084649' data-sdk='show_11084649'></script>
+    
     
 
     <style>
@@ -444,8 +446,7 @@ body, html {
 
     </style>
 </head>
-<body >
-
+<body >      
 <div class="app-container">
     
     <!-- SMS ALERT MODAL -->
@@ -523,6 +524,19 @@ body, html {
         <div class="earn-tab" id="tab-completed" onclick="switchEarnTab('completed')">Completed</div>
     </div>
     
+    <!-- Watch Ad Task (အမြဲတမ်းလုပ်လို့ရမည်) -->
+<div class="task-card" onclick="watchAdAndEarn()">
+    <div class="task-info">
+        <div class="task-icon yt-icon">
+            <i class="fas fa-video"></i>
+        </div>
+        <div class="task-text">
+            <p>Watch Ad to Earn</p>
+            <span class="reward-val" style="color: #2ecc71;">$ +50</span>
+        </div>
+    </div>
+    <i class="fas fa-play" style="color: white; background: #007bff; padding: 8px; border-radius: 50%; font-size: 12px;"></i>
+</div>
     <!-- ဒီနေရာမှာ ID ကို task-list-container လို့ ပြောင်းပေးပါ -->
     <div class="list-container" id="task-list-container">
         <!-- Tasks တွေကို JavaScript ကနေ ဒီထဲမှာ ထည့်ပေးပါမယ် -->
@@ -1081,6 +1095,72 @@ function copyInviteLink() {
     navigator.clipboard.writeText(copyText.value).then(() => {
         alert("Invite Link ကို Copy ကူးယူပြီးပါပြီ။");
     });
+}
+
+
+// ==========================================
+// Watch Ads System (Monetag)
+// ==========================================
+
+// In-App Interstitial
+
+show_11084649({
+  type: 'inApp',
+  inAppSettings: {
+    frequency: 2,
+    capping: 0.1,
+    interval: 30,
+    timeout: 5,
+    everyPage: false
+  }
+})
+
+
+function watchAdAndEarn() {
+    // ကြော်ငြာကြည့်ရင် ရမည့် အမှတ်
+    const adReward = 50;
+    
+    // Monetag ရဲ့ ကြော်ငြာပြသည့် Function ခေါ်ခြင်း
+    // (Monetag မှ သင့်ကိုပေးသော တကယ့် Function နာမည်ကို အောက်တွင် ပြင်ရေးရပါမည်)
+    // ဥပမာ - showRewardedAd() သို့မဟုတ် Monetag.showAd()
+    
+    try {
+        
+
+// Rewarded interstitial
+
+show_11084649().then(() => {
+    // You need to add your user reward function here, which will be executed after the user watches the ad.
+    // For more details, please refer to the detailed instructions.
+    alert('You have seen an ad!');
+})
+
+        
+        userData.taskEarnings = (userData.taskEarnings || 0) + adReward;
+        
+        const clicks = userData.totalClicks || 0;
+        const taskPoints = userData.taskEarnings;
+        const invites = userData.inviteEarnings || 0;
+        const withdrawn = userData.withdrawnAmount || 0;
+        
+        userData.balance = (clicks + taskPoints + invites) - withdrawn;
+        updateUI();
+        
+        db.collection("users").doc(userId).update({
+            taskEarnings: firebase.firestore.FieldValue.increment(adReward),
+            balance: userData.balance
+        }).then(() => {
+            alert("ကျေးဇူးတင်ပါသည်။ ကြော်ငြာကြည့်ရှုခြင်း အောင်မြင်သဖြင့် ၅၀ ပွိုင့် ရရှိပါပြီ။");
+        });
+        
+        // }).catch(error => {
+        //    alert("ကြော်ငြာ ပြသရာတွင် အမှားအယွင်းရှိနေပါသည်။ ခဏနေမှ ပြန်စမ်းကြည့်ပါ။");
+        // });
+        
+    } catch (error) {
+        console.error("Ad Error:", error);
+        alert("လောလောဆယ် ကြော်ငြာ မရရှိနိုင်သေးပါ။");
+    }
 }
 
 </script>
